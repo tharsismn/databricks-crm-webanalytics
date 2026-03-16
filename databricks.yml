@@ -7,11 +7,11 @@ workspace:
 
 variables:
   catalog:
-    description: "Unity Catalog name"
+    description: "Unity Catalog catalog name"
     default: "main"
   schema:
-    description: "Schema name for bronze tables"
-    default: "bronze_crm_webanalytics"
+    description: "Schema for all tables (Bronze, Silver, Gold)"
+    default: "crm_webanalytics"
   lakebase_catalog:
     description: "UC catalog that federates Lakebase PostgreSQL"
     default: "crm_app_lakebase"
@@ -21,15 +21,12 @@ variables:
   workspace_id:
     description: "Databricks workspace numeric ID"
     default: "<YOUR_WORKSPACE_ID>"
-  zerobus_region:
-    description: "AWS region for ZeroBus endpoint"
+  cloud_region:
+    description: "Cloud region (e.g. us-west-2, us-east-1, eu-west-1)"
     default: "us-west-2"
   secrets_scope:
-    description: "Databricks secrets scope with Service Principal credentials"
+    description: "Databricks secrets scope with SP credentials and Lakebase password"
     default: "crm-zerobus-sp"
-  sp_client_id:
-    description: "Service Principal Application (Client) ID for GRANT permissions"
-    default: "<YOUR_SP_CLIENT_ID>"
 
 include:
   - resources/*.yml
@@ -41,9 +38,9 @@ targets:
 
   staging:
     variables:
-      schema: "bronze_crm_webanalytics_staging"
+      schema: "crm_webanalytics_staging"
 
   prod:
     mode: production
     variables:
-      schema: "bronze_crm_webanalytics_prod"
+      schema: "crm_webanalytics_prod"

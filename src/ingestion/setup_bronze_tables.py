@@ -8,14 +8,15 @@ Também concede permissões ao Service Principal para o ZeroBus funcionar.
 
 import argparse
 from pyspark.sql import SparkSession
+from pyspark.dbutils import DBUtils
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--catalog", required=True)
     parser.add_argument("--schema", required=True)
-    parser.add_argument("--client-id", required=True,
-                        help="Service Principal Application ID para GRANT")
+    parser.add_argument("--secrets-scope", required=True,
+                        help="Databricks secrets scope containing 'client-id' key")
     return parser.parse_args()
 
 
@@ -126,4 +127,6 @@ def setup_bronze_tables(spark: SparkSession, catalog: str, schema: str, client_i
 if __name__ == "__main__":
     args = parse_args()
     spark = SparkSession.builder.appName("CRM-WebAnalytics-BronzeSetup").getOrCreate()
-    setup_bronze_tables(spark, args.catalog, args.schema, args.client_id)
+    dbutils = DBUtils(spark)
+    client_id = dbutils.secrets.get(scope=args.secrets_scope, key="client-id")
+    setup_bronze_tables(spark, args.catalog, args.schema, client_id)

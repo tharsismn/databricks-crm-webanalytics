@@ -17,8 +17,8 @@ resources:
               - "${var.catalog}"
               - "--schema"
               - "${var.schema}"
-              - "--client-id"
-              - "${var.sp_client_id}"
+              - "--secrets-scope"
+              - "${var.secrets_scope}"
           environment_key: default
 
         - task_key: zerobus_ingest
@@ -33,7 +33,7 @@ resources:
               - "--workspace-id"
               - "${var.workspace_id}"
               - "--region"
-              - "${var.zerobus_region}"
+              - "${var.cloud_region}"
               - "--secrets-scope"
               - "${var.secrets_scope}"
               - "--catalog"
@@ -69,7 +69,7 @@ resources:
               - "--source-catalog"
               - "${var.catalog}"
               - "--source-schema"
-              - "crm_webanalytics"
+              - "${var.schema}"
               - "--lakebase-catalog"
               - "${var.lakebase_catalog}"
               - "--lakebase-schema"

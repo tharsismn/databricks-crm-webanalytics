@@ -3,7 +3,7 @@ resources:
     crm_webanalytics_dlt:
       name: "[${bundle.target}] CRM WebAnalytics - Medallion Pipeline"
       catalog: "${var.catalog}"
-      target: "crm_webanalytics"
+      target: "${var.schema}"
       serverless: true
       continuous: true
       development: false

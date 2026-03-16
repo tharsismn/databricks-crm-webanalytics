@@ -34,8 +34,8 @@ Mobile App → ZeroBus REST API → Bronze (Delta) → DLT (Silver/Gold) → Syn
 ### 1. Clone e configure o workspace
 
 ```bash
-git clone https://github.com/<your-user>/crm-webanalytics-ingest.git
-cd crm-webanalytics-ingest
+git clone https://github.com/tharsismn/databricks-crm-webanalytics.git
+cd databricks-crm-webanalytics
 ```
 
 Edite `databricks.yml` e defina:
@@ -52,29 +52,35 @@ Edite os defaults em `databricks.yml` ou passe como parâmetros no deploy:
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
 | `catalog` | Catálogo Unity Catalog | `main` |
-| `schema` | Schema para tabelas Bronze | `bronze_crm_webanalytics` |
+| `schema` | Schema único para todas as tabelas (Bronze, Silver, Gold) | `crm_webanalytics` |
 | `lakebase_catalog` | Catálogo UC que federa o Lakebase | `crm_app_lakebase` |
 | `workspace_url` | URL completa do workspace | `https://my-ws.cloud.databricks.com` |
 | `workspace_id` | ID numérico do workspace | `1234567890` |
-| `zerobus_region` | Região AWS do ZeroBus | `us-west-2` |
-| `secrets_scope` | Scope de secrets com credenciais do SP | `crm-zerobus-sp` |
-| `sp_client_id` | Application (Client) ID do Service Principal | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
+| `cloud_region` | Região cloud (AWS/Azure/GCP) | `us-west-2` |
+| `secrets_scope` | Scope de secrets com credenciais | `crm-zerobus-sp` |
 
 ### 3. Configure os Secrets
 
-Crie um scope de secrets e armazene as credenciais do Service Principal:
+Crie um scope de secrets e armazene as credenciais:
 
 ```bash
 # Criar scope
 databricks secrets create-scope crm-zerobus-sp
 
-# Armazenar credenciais do Service Principal
+# Service Principal - Client ID e Secret
 databricks secrets put-secret crm-zerobus-sp client-id --string-value "<SP_CLIENT_ID>"
 databricks secrets put-secret crm-zerobus-sp client-secret --string-value "<SP_CLIENT_SECRET>"
 
-# Armazenar senha do Lakebase (usada pelo Databricks App)
+# Senha do Lakebase (usada pelo Databricks App)
 databricks secrets put-secret crm-zerobus-sp lakebase-password --string-value "<LAKEBASE_PASSWORD>"
 ```
+
+> **Secrets necessários:**
+> | Key | Descrição |
+> |-----|-----------|
+> | `client-id` | Application (Client) ID do Service Principal |
+> | `client-secret` | Secret do Service Principal |
+> | `lakebase-password` | Senha do role PostgreSQL no Lakebase |
 
 ### 4. Configure o Lakebase
 
@@ -169,7 +175,7 @@ Se precisar recriar os dados do zero:
 ## Estrutura do Projeto
 
 ```
-crm-webanalytics-ingest/
+databricks-crm-webanalytics/
 ├── databricks.yml                          # Configuração do Databricks Asset Bundle
 ├── resources/
 │   ├── jobs.yml                            # Jobs: ingestão Bronze + synced tables
@@ -185,6 +191,8 @@ crm-webanalytics-ingest/
 │   │   └── create_synced_tables.py         # Cria synced tables Gold → Lakebase
 │   └── generators/
 │       └── generate_crm_events.py          # Gerador alternativo (Spark direto)
+├── docs/
+│   └── monitor_crm_arch.png               # Diagrama de arquitetura
 └── app/                                    # Databricks App
     ├── app.yaml                            # Configuração do app (env vars)
     ├── app.py                              # FastAPI backend
@@ -216,18 +224,35 @@ crm-webanalytics-ingest/
 - **Drill-down** — Clique em um ponto do gráfico para ver detalhes do horário
 - **Comparador** — Selecione 2 campanhas para comparação side-by-side de métricas
 
-## Tabelas Gold
+## Tabelas
 
-| Tabela | Descrição | Granularidade |
-|--------|-----------|---------------|
-| `gold_campaign_performance` | Performance consolidada por campanha | campaign_id |
-| `gold_campaign_hourly_metrics` | Série temporal horária | campaign_id, data, hora |
-| `gold_campaign_minute_metrics` | Série temporal por minuto | campaign_id, data, hora, minuto |
-| `gold_channel_performance` | Performance por canal | campaign_channel |
-| `gold_segment_analysis` | Performance por segmento | target_segment |
-| `gold_geo_performance` | Performance geográfica | região, cidade |
-| `gold_ab_test_results` | Resultados A/B test | ab_test_group |
-| `gold_daily_kpis` | KPIs diários consolidados | event_date |
+Todas as tabelas residem no mesmo schema (`catalog.schema`):
+
+### Bronze (ingestão via ZeroBus)
+| Tabela | Descrição |
+|--------|-----------|
+| `bronze_crm_campaign_clicks` | Eventos brutos de clicks/impressions/conversions |
+| `bronze_crm_campaigns_metadata` | Metadados das campanhas CRM |
+| `bronze_app_sessions` | Sessões do mobile banking app |
+
+### Silver (DLT - limpeza e enriquecimento)
+| Tabela | Descrição |
+|--------|-----------|
+| `silver_crm_campaign_clicks` | Clicks tipados, deduplicados, com hora/dia/business hours |
+| `silver_crm_campaigns` | Campanhas com is_expired, duration_days |
+| `silver_app_sessions` | Sessões com duração e nível de engajamento |
+
+### Gold (DLT - agregações com CDF)
+| Tabela | Granularidade |
+|--------|---------------|
+| `gold_campaign_performance` | campaign_id |
+| `gold_campaign_hourly_metrics` | campaign_id, data, hora |
+| `gold_campaign_minute_metrics` | campaign_id, data, hora, minuto |
+| `gold_channel_performance` | campaign_channel |
+| `gold_segment_analysis` | target_segment |
+| `gold_geo_performance` | região, cidade |
+| `gold_ab_test_results` | ab_test_group |
+| `gold_daily_kpis` | event_date |
 
 ## Licença
 
