@@ -84,12 +84,23 @@ databricks secrets put-secret crm-zerobus-sp lakebase-password --string-value "<
 
 ### 4. Configure o Lakebase
 
-Antes de rodar, você precisa de uma instância Lakebase com um database `crm_app`:
+Antes de rodar, você precisa de uma instância Lakebase com um database e role configurados:
 
 1. Crie uma instância Lakebase no workspace
 2. Crie o database `crm_app`
-3. Crie um role com permissões (ex: `role_crm_app`)
-4. Anote o host do endpoint (ex: `ep-xxx.database.us-west-2.cloud.databricks.com`)
+3. Crie um role (ex: `role_crm_app`) com senha
+4. Conceda as permissões necessárias ao role:
+
+```sql
+-- Conecte no Lakebase PostgreSQL e execute:
+GRANT USAGE ON SCHEMA crm_app TO role_crm_app;
+GRANT SELECT ON ALL TABLES IN SCHEMA crm_app TO role_crm_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA crm_app GRANT SELECT ON TABLES TO role_crm_app;
+```
+
+> **Nota:** O `ALTER DEFAULT PRIVILEGES` garante que novas synced tables criadas automaticamente já terão permissão de leitura para o role.
+
+5. Anote o host do endpoint (ex: `ep-xxx.database.us-west-2.cloud.databricks.com`)
 
 Edite `app/app.yaml` com os dados da sua instância:
 
@@ -130,7 +141,36 @@ databricks apps deploy crm-campaign-monitor \
 
 ## Execução
 
-### Sequência recomendada
+### Setup automatizado (recomendado)
+
+Use o script `setup.sh` para executar todo o pipeline de uma vez:
+
+```bash
+./setup.sh \
+  --workspace-url "https://my-workspace.cloud.databricks.com" \
+  --workspace-id "1234567890" \
+  --cloud-region "us-west-2" \
+  --catalog "main" \
+  --schema "crm_webanalytics" \
+  --secrets-scope "crm-zerobus-sp" \
+  --lakebase-catalog "crm_app_lakebase" \
+  --profile "DEFAULT"
+```
+
+O script executa automaticamente:
+1. Build do frontend
+2. Bundle deploy
+3. Job de ingestão Bronze (aguarda setup_tables terminar)
+4. Pipeline DLT com full refresh + modo contínuo (aguarda processar dados)
+5. Job de synced tables (aguarda conclusão)
+6. Deploy do Databricks App
+
+Flags opcionais:
+- `--skip-build` — pular build do frontend (se já foi feito)
+- `--skip-deploy` — pular bundle deploy (usar deploy existente)
+- `--target` — bundle target: dev/staging/prod (default: dev)
+
+### Sequência manual
 
 1. **Ingestão Bronze** — Execute o job `CRM WebAnalytics - Bronze Setup + ZeroBus Ingest`
    ```bash
@@ -176,6 +216,7 @@ Se precisar recriar os dados do zero:
 
 ```
 databricks-crm-webanalytics/
+├── setup.sh                                # Script de setup e execução automatizado
 ├── databricks.yml                          # Configuração do Databricks Asset Bundle
 ├── resources/
 │   ├── jobs.yml                            # Jobs: ingestão Bronze + synced tables
