@@ -97,7 +97,10 @@ Antes de rodar, você precisa de uma instância Lakebase com um database e role 
 -- Conecte no Lakebase PostgreSQL e execute:
 GRANT USAGE ON SCHEMA crm_app TO role_crm_app;
 GRANT SELECT ON ALL TABLES IN SCHEMA crm_app TO role_crm_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA crm_app GRANT SELECT ON TABLES TO role_crm_app;
 ```
+
+> **Nota:** O `ALTER DEFAULT PRIVILEGES` garante que tabelas criadas no futuro (ex: synced tables recriadas) já nascem com permissão de leitura para o role, sem precisar rodar o GRANT novamente.
 
 5. Anote o host do endpoint (ex: `ep-xxx.database.us-west-2.cloud.databricks.com`)
 
