@@ -2,6 +2,8 @@
 
 Pipeline de dados real-time para monitoramento de campanhas CRM em mobile banking, construído sobre Databricks com arquitetura Medallion (Bronze → Silver → Gold), Lakebase PostgreSQL e dashboard interativo.
 
+> **Nota:** Este é um projeto de demonstração que utiliza dados fictícios gerados sinteticamente. O objetivo é demonstrar a integração entre ZeroBus, Delta Live Tables, Lakebase e Databricks Apps em um cenário real-time. Este projeto não aborda todas as camadas de segurança necessárias para um ambiente de produção.
+
 ![Architecture](docs/monitor_crm_arch.png)
 
 ## Arquitetura
@@ -95,10 +97,7 @@ Antes de rodar, você precisa de uma instância Lakebase com um database e role 
 -- Conecte no Lakebase PostgreSQL e execute:
 GRANT USAGE ON SCHEMA crm_app TO role_crm_app;
 GRANT SELECT ON ALL TABLES IN SCHEMA crm_app TO role_crm_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA crm_app GRANT SELECT ON TABLES TO role_crm_app;
 ```
-
-> **Nota:** O `ALTER DEFAULT PRIVILEGES` garante que novas synced tables criadas automaticamente já terão permissão de leitura para o role.
 
 5. Anote o host do endpoint (ex: `ep-xxx.database.us-west-2.cloud.databricks.com`)
 
