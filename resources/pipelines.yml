@@ -1,0 +1,17 @@
+resources:
+  pipelines:
+    crm_webanalytics_dlt:
+      name: "[${bundle.target}] CRM WebAnalytics - Medallion Pipeline"
+      catalog: "${var.catalog}"
+      target: "crm_webanalytics"
+      serverless: true
+      continuous: true
+      development: false
+      libraries:
+        - file:
+            path: ../src/transformations/silver_transforms.py
+        - file:
+            path: ../src/transformations/gold_transforms.py
+      configuration:
+        bronze_catalog: "${var.catalog}"
+        bronze_schema: "${var.schema}"

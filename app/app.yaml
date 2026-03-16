@@ -1,0 +1,18 @@
+command:
+  - uvicorn
+  - app:app
+  - --host
+  - 0.0.0.0
+  - --port
+  - "8000"
+
+env:
+  # IMPORTANT: Update these values with your Lakebase connection details
+  - name: LAKEBASE_HOST
+    value: "<YOUR_LAKEBASE_HOST>.database.<REGION>.cloud.databricks.com"
+  - name: LAKEBASE_DB
+    value: "crm_app"
+  - name: LAKEBASE_USER
+    value: "<YOUR_LAKEBASE_ROLE>"
+  - name: LAKEBASE_PASSWORD
+    valueFrom: lakebase-password-secret

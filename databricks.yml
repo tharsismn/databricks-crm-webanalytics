@@ -1,0 +1,49 @@
+bundle:
+  name: crm-webanalytics-ingest
+
+# IMPORTANT: Set your workspace host below
+workspace:
+  host: https://<YOUR_WORKSPACE>.cloud.databricks.com
+
+variables:
+  catalog:
+    description: "Unity Catalog name"
+    default: "main"
+  schema:
+    description: "Schema name for bronze tables"
+    default: "bronze_crm_webanalytics"
+  lakebase_catalog:
+    description: "UC catalog that federates Lakebase PostgreSQL"
+    default: "crm_app_lakebase"
+  workspace_url:
+    description: "Full Databricks workspace URL (e.g. https://my-workspace.cloud.databricks.com)"
+    default: "https://<YOUR_WORKSPACE>.cloud.databricks.com"
+  workspace_id:
+    description: "Databricks workspace numeric ID"
+    default: "<YOUR_WORKSPACE_ID>"
+  zerobus_region:
+    description: "AWS region for ZeroBus endpoint"
+    default: "us-west-2"
+  secrets_scope:
+    description: "Databricks secrets scope with Service Principal credentials"
+    default: "crm-zerobus-sp"
+  sp_client_id:
+    description: "Service Principal Application (Client) ID for GRANT permissions"
+    default: "<YOUR_SP_CLIENT_ID>"
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+
+  staging:
+    variables:
+      schema: "bronze_crm_webanalytics_staging"
+
+  prod:
+    mode: production
+    variables:
+      schema: "bronze_crm_webanalytics_prod"

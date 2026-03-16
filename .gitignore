@@ -1,0 +1,28 @@
+# Databricks
+.databricks/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node / Frontend
+app/frontend/node_modules/
+app/frontend/.vite/
+app/frontend/dist/
+app/frontend/package-lock.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (never commit)
+.env
+*.secret
