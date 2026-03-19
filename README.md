@@ -1,4 +1,4 @@
-# CRM WebAnalytics Ingest
+# CRM WebAnalytics Monitoring
 
 Pipeline de dados real-time para monitoramento de campanhas CRM em mobile banking, construído sobre Databricks com arquitetura Medallion (Bronze → Silver → Gold), Lakebase PostgreSQL e dashboard interativo.
 
